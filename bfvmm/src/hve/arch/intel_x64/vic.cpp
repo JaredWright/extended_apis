@@ -148,7 +148,7 @@ vic::init_lapic()
         throw std::runtime_error("lapic not present");
     }
 
-    const auto state = apic_base::state::get(m_orig_base_msr);
+    auto state = apic_base::state::get(m_orig_base_msr);
     switch (state) {
         case apic_base::state::x2apic:
             this->init_phys_x2apic();
@@ -179,7 +179,7 @@ vic::init_phys_xapic()
     using namespace bfvmm::x64;
 
     const auto orig_virt = get_platform_info()->xapic_virt;
-    const auto orig_phys = apic_base::apic_base::get(m_orig_base_msr);
+    auto orig_phys = apic_base::apic_base::get(m_orig_base_msr);
     auto map = make_unique_map<uint8_t>(orig_phys, x64::memory_attr::rw_uc);
 
     if (map == nullptr) {
@@ -347,8 +347,8 @@ vic::add_apic_base_handlers()
 void
 vic::add_external_interrupt_handlers()
 {
-    const auto svr = m_virt_lapic->read_svr();
-    const auto svr_vector = lapic::svr::vector::get(svr);
+    auto svr = m_virt_lapic->read_svr();
+    auto svr_vector = lapic::svr::vector::get(svr);
 
     for (auto vector = 32U; vector < s_num_vectors; ++vector) {
         m_hve->add_external_interrupt_handler(

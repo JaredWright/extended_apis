@@ -67,15 +67,16 @@ ept_violation::dump_log()
 
             for (const auto &record : m_log) {
 
-                if (vmcs_n::exit_qualification::ept_violation::data_read::is_enabled(record.exit_qualification)) {
+                auto qual = record.exit_qualification;
+                if (vmcs_n::exit_qualification::ept_violation::data_read::is_enabled(qual)) {
                     bfdebug_info(0, "data read record", msg);
                 }
 
-                if (vmcs_n::exit_qualification::ept_violation::data_write::is_enabled(record.exit_qualification)) {
+                if (vmcs_n::exit_qualification::ept_violation::data_write::is_enabled(qual)) {
                     bfdebug_info(0, "data write record", msg);
                 }
 
-                if (vmcs_n::exit_qualification::ept_violation::instruction_fetch::is_enabled(record.exit_qualification)) {
+                if (vmcs_n::exit_qualification::ept_violation::instruction_fetch::is_enabled(qual)) {
                     bfdebug_info(0, "instruction fetch record", msg);
                 }
 
