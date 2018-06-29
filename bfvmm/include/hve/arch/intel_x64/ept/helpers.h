@@ -1,7 +1,6 @@
 //
 // Bareflank Extended APIs
-//
-// Copyright (C) 2015 Assured Information Security, Inc.
+// Copyright (C) 2018 Assured Information Security, Inc.
 //
 // This library is free software; you can redistribute it and/or
 // modify it under the terms of the GNU Lesser General Public
@@ -21,9 +20,8 @@
 #define EPT_HELPERS_INTEL_X64_H
 
 #include "../hve.h"
-#include "memory_map.h"
-#include "intrinsics.h"
-#include "types.h"
+#include "mmap.h"
+#include <arch/intel_x64/ept_paging.h>
 
 namespace eapis
 {
@@ -31,6 +29,8 @@ namespace intel_x64
 {
 namespace ept
 {
+
+using namespace ::intel_x64::ept;
 
 /// Align the given address to 1G boundary
 ///
@@ -69,11 +69,11 @@ uintptr_t align_4k(uintptr_t addr);
 /// @expects
 /// @ensures
 ///
-/// @param mem_map the memory map to calculate EPTP for
+/// @param ept_mmap the memory map to calculate EPTP for
 ///
 /// @return Returns a VMCS EPTP field
 ///
-uint64_t eptp(memory_map &mem_map);
+uint64_t eptp(mmap &ept_mmap);
 
 /// Enable EPT (and VPID if it is not enabled) using the given pointers
 ///
@@ -102,13 +102,15 @@ void disable_ept(void);
 /// @expects
 /// @ensures
 ///
-/// @param mem_map the memory map to be modified
+/// @param ept_mmap the memory map to be modified
 /// @param gpa the guest physical address to map from
 /// @param hpa the host physical address to map to
-/// @param mattr page table entry memory attributes to be applied to the mapping
+/// @param attr the map permissions
+/// @param mtype the memory type for the mapping
 ///
-void map_1g(memory_map &mem_map, gpa_t gpa, hpa_t hpa,
-        memory_attr_t mattr = epte::memory_attr::wb_pt);
+void map_1g(mmap &ept_mmap, gpa_t gpa, hpa_t hpa,
+        attr_type mattr = attr_type::pass_through,
+        memory_type mtype = memory_type::write_back);
 
 /// Map n number of contiguous 1GB page frames from the given guest physical
 /// address to given host physical address with the given memory attributes
@@ -116,14 +118,16 @@ void map_1g(memory_map &mem_map, gpa_t gpa, hpa_t hpa,
 /// @expects
 /// @ensures
 ///
-/// @param mem_map the memory map to be modified
+/// @param ept_mmap the memory map to be modified
 /// @param gpa the guest physical address to map from
 /// @param hpa the host physical address to map to
 /// @param n the number of contiguous pages to map
-/// @param mattr page table entry memory attributes to be applied to the mapping
+/// @param attr the map permissions
+/// @param mtype the memory type for the mapping
 ///
-void map_n_contig_1g(memory_map &mem_map, gpa_t gpa, hpa_t hpa, uint64_t n,
-        memory_attr_t mattr = epte::memory_attr::wb_pt);
+void map_n_contig_1g(mmap &ept_mmap, gpa_t gpa, hpa_t hpa, uint64_t n,
+        attr_type mattr = attr_type::pass_through,
+        memory_type mtype = memory_type::write_back);
 
 /// Map the range of guest physical addresses from gpa_s to gpa_e (inclusive)
 /// to a continuous range of host physical addresses starting at hpa using 1GB
@@ -132,14 +136,16 @@ void map_n_contig_1g(memory_map &mem_map, gpa_t gpa, hpa_t hpa, uint64_t n,
 /// @expects gpa_s < gpa_e
 /// @ensures
 ///
-/// @param mem_map the memory map to be modified
+/// @param ept_mmap the memory map to be modified
 /// @param gpa_s the guest physical address to start mapping from
 /// @param gpa_e the guest physical address to end mapping to
 /// @param hpa the host physical address to map to
-/// @param mattr page table entry memory attributes to be applied to the mapping
+/// @param attr the map permissions
+/// @param mtype the memory type for the mapping
 ///
-void map_range_1g(memory_map &mem_map, gpa_t gpa_s, gpa_t gpa_e, hpa_t hpa,
-        memory_attr_t mattr = epte::memory_attr::wb_pt);
+void map_range_1g(mmap &ept_mmap, gpa_t gpa_s, gpa_t gpa_e, hpa_t hpa,
+        attr_type mattr = attr_type::pass_through,
+        memory_type mtype = memory_type::write_back);
 
 /// Identity map 1GB of memory from the guest physical address with the given
 /// memory attributes
@@ -147,12 +153,14 @@ void map_range_1g(memory_map &mem_map, gpa_t gpa_s, gpa_t gpa_e, hpa_t hpa,
 /// @expects
 /// @ensures
 ///
-/// @param mem_map the memory map to be modified
+/// @param ept_mmap the memory map to be modified
 /// @param gpa the guest physical address to map from
-/// @param mattr page table entry memory attributes to be applied to the mapping
+/// @param attr the map permissions
+/// @param mtype the memory type for the mapping
 ///
-void identity_map_1g(memory_map &mem_map, gpa_t gpa,
-        memory_attr_t mattr = epte::memory_attr::wb_pt);
+void identity_map_1g(mmap &ept_mmap, gpa_t gpa,
+        attr_type mattr = attr_type::pass_through,
+        memory_type mtype = memory_type::write_back);
 
 /// Identity map n number of contiguous 1GB page frames from the given guest
 /// physical address with the given memory attributes
@@ -160,13 +168,15 @@ void identity_map_1g(memory_map &mem_map, gpa_t gpa,
 /// @expects
 /// @ensures
 ///
-/// @param mem_map the memory map to be modified
+/// @param ept_mmap the memory map to be modified
 /// @param gpa the guest physical address to map from
 /// @param n the number of contiguous pages to map
-/// @param mattr page table entry memory attributes to be applied to the mapping
+/// @param attr the map permissions
+/// @param mtype the memory type for the mapping
 ///
-void identity_map_n_contig_1g(memory_map &mem_map, gpa_t gpa, uint64_t n,
-        memory_attr_t mattr = epte::memory_attr::wb_pt);
+void identity_map_n_contig_1g(mmap &ept_mmap, gpa_t gpa, uint64_t n,
+        attr_type mattr = attr_type::pass_through,
+        memory_type mtype = memory_type::write_back);
 
 /// Identity map the range of guest physical addresses from gpa_s to gpa_e
 /// (inclusive) using 1GB page frames and the given memory attributes
@@ -174,13 +184,15 @@ void identity_map_n_contig_1g(memory_map &mem_map, gpa_t gpa, uint64_t n,
 /// @expects gpa_s < gpa_e
 /// @ensures
 ///
-/// @param mem_map the memory map to be modified
+/// @param ept_mmap the memory map to be modified
 /// @param gpa_s the guest physical address to start mapping from
 /// @param gpa_e the guest physical address to end mapping to
-/// @param mattr page table entry memory attributes to be applied to the mapping
+/// @param attr the map permissions
+/// @param mtype the memory type for the mapping
 ///
-void identity_map_range_1g(memory_map &mem_map, gpa_t gpa_s, gpa_t gpa_e,
-        memory_attr_t mattr = epte::memory_attr::wb_pt);
+void identity_map_range_1g(mmap &ept_mmap, gpa_t gpa_s, gpa_t gpa_e,
+        attr_type mattr = attr_type::pass_through,
+        memory_type mtype = memory_type::write_back);
 
 //--------------------------------------------------------------------------
 // 2MB pages
@@ -192,13 +204,15 @@ void identity_map_range_1g(memory_map &mem_map, gpa_t gpa_s, gpa_t gpa_e,
 /// @expects
 /// @ensures
 ///
-/// @param mem_map the memory map to be modified
+/// @param ept_mmap the memory map to be modified
 /// @param gpa the guest physical address to map from
 /// @param hpa the host physical address to map to
-/// @param mattr page table entry memory attributes to be applied to the mapping
+/// @param attr the map permissions
+/// @param mtype the memory type for the mapping
 ///
-void map_2m(memory_map &mem_map, gpa_t gpa, hpa_t hpa,
-        memory_attr_t mattr = epte::memory_attr::wb_pt);
+void map_2m(mmap &ept_mmap, gpa_t gpa, hpa_t hpa,
+        attr_type mattr = attr_type::pass_through,
+        memory_type mtype = memory_type::write_back);
 
 /// Map n number of contiguous 2MB page frames from the given guest physical
 /// address to given host physical address with the given memory attributes
@@ -206,14 +220,16 @@ void map_2m(memory_map &mem_map, gpa_t gpa, hpa_t hpa,
 /// @expects
 /// @ensures
 ///
-/// @param mem_map the memory map to be modified
+/// @param ept_mmap the memory map to be modified
 /// @param gpa the guest physical address to map from
 /// @param hpa the host physical address to map to
 /// @param n the number of contiguous pages to map
-/// @param mattr page table entry memory attributes to be applied to the mapping
+/// @param attr the map permissions
+/// @param mtype the memory type for the mapping
 ///
-void map_n_contig_2m(memory_map &mem_map, gpa_t gpa, hpa_t hpa, uint64_t n,
-        memory_attr_t mattr = epte::memory_attr::wb_pt);
+void map_n_contig_2m(mmap &ept_mmap, gpa_t gpa, hpa_t hpa, uint64_t n,
+        attr_type mattr = attr_type::pass_through,
+        memory_type mtype = memory_type::write_back);
 
 /// Map the range of guest physical addresses from gpa_s to gpa_e (inclusive)
 /// to a continuous range of host physical addresses starting at hpa using 2MB
@@ -222,14 +238,16 @@ void map_n_contig_2m(memory_map &mem_map, gpa_t gpa, hpa_t hpa, uint64_t n,
 /// @expects gpa_s < gpa_e
 /// @ensures
 ///
-/// @param mem_map the memory map to be modified
+/// @param ept_mmap the memory map to be modified
 /// @param gpa_s the guest physical address to start mapping from
 /// @param gpa_e the guest physical address to end mapping to
 /// @param hpa the host physical address to map to
-/// @param mattr page table entry memory attributes to be applied to the mapping
+/// @param attr the map permissions
+/// @param mtype the memory type for the mapping
 ///
-void map_range_2m(memory_map &mem_map, gpa_t gpa_s, gpa_t gpa_e, hpa_t hpa,
-        memory_attr_t mattr = epte::memory_attr::wb_pt);
+void map_range_2m(mmap &ept_mmap, gpa_t gpa_s, gpa_t gpa_e, hpa_t hpa,
+        attr_type mattr = attr_type::pass_through,
+        memory_type mtype = memory_type::write_back);
 
 /// Identity map 2MB of memory from the guest physical address with the given
 /// memory attributes
@@ -237,12 +255,14 @@ void map_range_2m(memory_map &mem_map, gpa_t gpa_s, gpa_t gpa_e, hpa_t hpa,
 /// @expects
 /// @ensures
 ///
-/// @param mem_map the memory map to be modified
+/// @param ept_mmap the memory map to be modified
 /// @param gpa the guest physical address to map from
-/// @param mattr page table entry memory attributes to be applied to the mapping
+/// @param attr the map permissions
+/// @param mtype the memory type for the mapping
 ///
-void identity_map_2m(memory_map &mem_map, gpa_t gpa,
-        memory_attr_t mattr = epte::memory_attr::wb_pt);
+void identity_map_2m(mmap &ept_mmap, gpa_t gpa,
+        attr_type mattr = attr_type::pass_through,
+        memory_type mtype = memory_type::write_back);
 
 /// Identity map n number of contiguous 2MB page frames from the given guest
 /// physical address with the given memory attributes
@@ -250,13 +270,15 @@ void identity_map_2m(memory_map &mem_map, gpa_t gpa,
 /// @expects
 /// @ensures
 ///
-/// @param mem_map the memory map to be modified
+/// @param ept_mmap the memory map to be modified
 /// @param gpa the guest physical address to map from
 /// @param n the number of contiguous pages to map
-/// @param mattr page table entry memory attributes to be applied to the mapping
+/// @param attr the map permissions
+/// @param mtype the memory type for the mapping
 ///
-void identity_map_n_contig_2m(memory_map &mem_map, gpa_t gpa, uint64_t n,
-        memory_attr_t mattr = epte::memory_attr::wb_pt);
+void identity_map_n_contig_2m(mmap &ept_mmap, gpa_t gpa, uint64_t n,
+        attr_type mattr = attr_type::pass_through,
+        memory_type mtype = memory_type::write_back);
 
 /// Identity map the range of guest physical addresses from gpa_s to gpa_e
 /// (inclusive) using 2MB page frames and the given memory attributes
@@ -264,13 +286,15 @@ void identity_map_n_contig_2m(memory_map &mem_map, gpa_t gpa, uint64_t n,
 /// @expects gpa_s < gpa_e
 /// @ensures
 ///
-/// @param mem_map the memory map to be modified
+/// @param ept_mmap the memory map to be modified
 /// @param gpa_s the guest physical address to start mapping from
 /// @param gpa_e the guest physical address to end mapping to
-/// @param mattr page table entry memory attributes to be applied to the mapping
+/// @param attr the map permissions
+/// @param mtype the memory type for the mapping
 ///
-void identity_map_range_2m(memory_map &mem_map, gpa_t gpa_s, gpa_t gpa_e,
-        memory_attr_t mattr = epte::memory_attr::wb_pt);
+void identity_map_range_2m(mmap &ept_mmap, gpa_t gpa_s, gpa_t gpa_e,
+        attr_type mattr = attr_type::pass_through,
+        memory_type mtype = memory_type::write_back);
 
 //--------------------------------------------------------------------------
 // 4KB pages
@@ -282,13 +306,15 @@ void identity_map_range_2m(memory_map &mem_map, gpa_t gpa_s, gpa_t gpa_e,
 /// @expects
 /// @ensures
 ///
-/// @param mem_map the memory map to be modified
+/// @param ept_mmap the memory map to be modified
 /// @param gpa the guest physical address to map from
 /// @param hpa the host physical address to map to
-/// @param mattr page table entry memory attributes to be applied to the mapping
+/// @param attr the map permissions
+/// @param mtype the memory type for the mapping
 ///
-void map_4k(memory_map &mem_map, gpa_t gpa, hpa_t hpa,
-        memory_attr_t mattr = epte::memory_attr::wb_pt);
+void map_4k(mmap &ept_mmap, gpa_t gpa, hpa_t hpa,
+        attr_type mattr = attr_type::pass_through,
+        memory_type mtype = memory_type::write_back);
 
 /// Map n number of contiguous 4KB page frames from the given guest physical
 /// address to given host physical address with the given memory attributes
@@ -296,14 +322,16 @@ void map_4k(memory_map &mem_map, gpa_t gpa, hpa_t hpa,
 /// @expects
 /// @ensures
 ///
-/// @param mem_map the memory map to be modified
+/// @param ept_mmap the memory map to be modified
 /// @param gpa the guest physical address to map from
 /// @param hpa the host physical address to map to
 /// @param n the number of contiguous pages to map
-/// @param mattr page table entry memory attributes to be applied to the mapping
+/// @param attr the map permissions
+/// @param mtype the memory type for the mapping
 ///
-void map_n_contig_4k(memory_map &mem_map, gpa_t gpa, hpa_t hpa, uint64_t n,
-        memory_attr_t mattr = epte::memory_attr::wb_pt);
+void map_n_contig_4k(mmap &ept_mmap, gpa_t gpa, hpa_t hpa, uint64_t n,
+        attr_type mattr = attr_type::pass_through,
+        memory_type mtype = memory_type::write_back);
 
 /// Map the range of guest physical addresses from gpa_s to gpa_e (inclusive)
 /// to a continuous range of host physical addresses starting at hpa using 4KB
@@ -312,14 +340,16 @@ void map_n_contig_4k(memory_map &mem_map, gpa_t gpa, hpa_t hpa, uint64_t n,
 /// @expects gpa_s < gpa_e
 /// @ensures
 ///
-/// @param mem_map the memory map to be modified
+/// @param ept_mmap the memory map to be modified
 /// @param gpa_s the guest physical address to start mapping from
 /// @param gpa_e the guest physical address to end mapping to
 /// @param hpa the host physical address to map to
-/// @param mattr page table entry memory attributes to be applied to the mapping
+/// @param attr the map permissions
+/// @param mtype the memory type for the mapping
 ///
-void map_range_4k(memory_map &mem_map, gpa_t gpa_s, gpa_t gpa_e, hpa_t hpa,
-        memory_attr_t mattr = epte::memory_attr::wb_pt);
+void map_range_4k(mmap &ept_mmap, gpa_t gpa_s, gpa_t gpa_e, hpa_t hpa,
+        attr_type mattr = attr_type::pass_through,
+        memory_type mtype = memory_type::write_back);
 
 /// Identity map 4KB of memory from the guest physical address with the given
 /// memory attributes
@@ -327,12 +357,14 @@ void map_range_4k(memory_map &mem_map, gpa_t gpa_s, gpa_t gpa_e, hpa_t hpa,
 /// @expects
 /// @ensures
 ///
-/// @param mem_map the memory map to be modified
+/// @param ept_mmap the memory map to be modified
 /// @param gpa the guest physical address to map from
-/// @param mattr page table entry memory attributes to be applied to the mapping
+/// @param attr the map permissions
+/// @param mtype the memory type for the mapping
 ///
-void identity_map_4k(memory_map &mem_map, gpa_t gpa,
-        memory_attr_t mattr = epte::memory_attr::wb_pt);
+void identity_map_4k(mmap &ept_mmap, gpa_t gpa,
+        attr_type mattr = attr_type::pass_through,
+        memory_type mtype = memory_type::write_back);
 
 /// Identity map n number of contiguous 4KB page frames from the given guest
 /// physical address with the given memory attributes
@@ -340,13 +372,15 @@ void identity_map_4k(memory_map &mem_map, gpa_t gpa,
 /// @expects
 /// @ensures
 ///
-/// @param mem_map the memory map to be modified
+/// @param ept_mmap the memory map to be modified
 /// @param gpa the guest physical address to map from
 /// @param n the number of contiguous pages to map
-/// @param mattr page table entry memory attributes to be applied to the mapping
+/// @param attr the map permissions
+/// @param mtype the memory type for the mapping
 ///
-void identity_map_n_contig_4k(memory_map &mem_map, gpa_t gpa, uint64_t n,
-        memory_attr_t mattr = epte::memory_attr::wb_pt);
+void identity_map_n_contig_4k(mmap &ept_mmap, gpa_t gpa, uint64_t n,
+        attr_type mattr = attr_type::pass_through,
+        memory_type mtype = memory_type::write_back);
 
 /// Identity map the range of guest physical addresses from gpa_s to gpa_e
 /// (inclusive) using 4KB page frames and the given memory attributes
@@ -354,13 +388,15 @@ void identity_map_n_contig_4k(memory_map &mem_map, gpa_t gpa, uint64_t n,
 /// @expects gpa_s < gpa_e
 /// @ensures
 ///
-/// @param mem_map the memory map to be modified
+/// @param ept_mmap the memory map to be modified
 /// @param gpa_s the guest physical address to start mapping from
 /// @param gpa_e the guest physical address to end mapping to
-/// @param mattr page table entry memory attributes to be applied to the mapping
+/// @param attr the map permissions
+/// @param mtype the memory type for the mapping
 ///
-void identity_map_range_4k(memory_map &mem_map, gpa_t gpa_s, gpa_t gpa_e,
-        memory_attr_t mattr = epte::memory_attr::wb_pt);
+void identity_map_range_4k(mmap &ept_mmap, gpa_t gpa_s, gpa_t gpa_e,
+        attr_type mattr = attr_type::pass_through,
+        memory_type mtype = memory_type::write_back);
 
 /// Identity map the range of guest physical addresses from gpa_s to gpa_e
 /// (inclusive) using as few pages as possible. This means that 1G pages
@@ -372,13 +408,15 @@ void identity_map_range_4k(memory_map &mem_map, gpa_t gpa_s, gpa_t gpa_e,
 /// @expects gpa_s < align_4k(gpa_e)
 /// @ensures
 ///
-/// @param mem_map the memory map to be modified
+/// @param ept_mmap the memory map to be modified
 /// @param gpa_s the guest physical address to start mapping from
 /// @param gpa_e the guest physical address to end mapping to
-/// @param mattr page table entry memory attributes to be applied to the mapping
+/// @param attr the map permissions
+/// @param mtype the memory type for the mapping
 ///
-void identity_map_bestfit_lo(ept::memory_map &mem_map, gpa_t gpa_s,
-        gpa_t gpa_e, memory_attr_t mattr = epte::memory_attr::wb_pt);
+void identity_map_bestfit_lo(ept::mmap &ept_mmap, gpa_t gpa_s, gpa_t gpa_e,
+        attr_type mattr = attr_type::pass_through,
+        memory_type mtype = memory_type::write_back);
 
 /// Identity map the range of guest physical addresses from gpa_s to gpa_e
 /// (inclusive) using as few pages as possible. This means that 4K pages
@@ -389,13 +427,15 @@ void identity_map_bestfit_lo(ept::memory_map &mem_map, gpa_t gpa_s,
 /// @expects align_4k(gpa_s) == gpa_s
 /// @ensures
 ///
-/// @param mem_map the memory map to be modified
+/// @param ept_mmap the memory map to be modified
 /// @param gpa_s the guest physical address to start mapping from
 /// @param gpa_e the guest physical address to end mapping to
-/// @param mattr page table entry memory attributes to be applied to the mapping
+/// @param attr the map permissions
+/// @param mtype the memory type for the mapping
 ///
-void identity_map_bestfit_hi(ept::memory_map &mem_map, gpa_t gpa_s,
-        gpa_t gpa_e, memory_attr_t mattr = epte::memory_attr::wb_pt);
+void identity_map_bestfit_hi(ept::mmap &ept_mmap, gpa_t gpa_s, gpa_t gpa_e,
+        attr_type mattr = attr_type::pass_through,
+        memory_type mtype = memory_type::write_back);
 
 //--------------------------------------------------------------------------
 // Unmapping
@@ -406,10 +446,10 @@ void identity_map_bestfit_hi(ept::memory_map &mem_map, gpa_t gpa_s,
 /// @expects
 /// @ensures
 ///
-/// @param mem_map the memory map to be modified
+/// @param ept_mmap the memory map to be modified
 /// @param gpa the guest physical address to be unmapped
 ///
-void unmap(memory_map &mem_map, gpa_t gpa);
+void unmap(mmap &ept_mmap, gpa_t gpa);
 
 }
 }

@@ -28,6 +28,7 @@
 #include "phys_xapic.h"
 #include "phys_x2apic.h"
 #include "virt_lapic.h"
+#include "ept/mmap.h"
 
 #ifndef VIC_LOG_LEVELS
 #define VIC_LOG_FATAL 0U
@@ -49,7 +50,7 @@ namespace intel_x64
 
 namespace ept
 {
-    class memory_map;
+    class mmap;
 }
 
 ///-----------------------------------------------------------------------------
@@ -159,7 +160,7 @@ public:
     ///
     vic(
         gsl::not_null<eapis::intel_x64::hve *> hve,
-        gsl::not_null<eapis::intel_x64::ept::memory_map *> emm);
+        gsl::not_null<eapis::intel_x64::ept::mmap *> emm);
 
     /// Destructor
     ///
@@ -434,7 +435,7 @@ private:
     const uint64_t m_orig_base_msr;
 
     eapis::intel_x64::hve *m_hve;
-    eapis::intel_x64::ept::memory_map *m_emm;
+    eapis::intel_x64::ept::mmap *m_emm;
 
     std::array<uint8_t, s_num_vectors> m_interrupt_map;
     std::array<std::list<handler_delegate_t>, s_num_vectors> m_handlers;

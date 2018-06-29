@@ -61,7 +61,7 @@ public:
 
 private:
 
-    std::unique_ptr<ept::memory_map> m_mem_map;
+    std::unique_ptr<ept::mmap> m_mem_map;
     bool m_have_trapped_write_violation = false;
 
 private:
@@ -92,16 +92,16 @@ private:
 
     void enable_ept()
     {
-        m_mem_map = std::make_unique<ept::memory_map>();
+        m_mem_map = std::make_unique<ept::mmap>();
 
         for (auto i = 0ULL; i < page_count; i++) {
             auto addr = i * page_size_bytes;
             ept::identity_map_1g(*m_mem_map, addr);
             auto &entry = m_mem_map->gpa_to_epte(addr);
 
-            ept::epte::read_access::disable(entry);
-            ept::epte::write_access::enable(entry);
-            ept::epte::execute_access::disable(entry);
+            ept::pt::entry::read_access::disable(entry);
+            ept::pt::entry::write_access::enable(entry);
+            ept::pt::entry::execute_access::disable(entry);
         }
 
         auto eptp = ept::eptp(*m_mem_map);
@@ -123,9 +123,9 @@ private:
             auto addr = i * page_size_bytes;
             auto &entry = m_mem_map->gpa_to_epte(addr);
 
-            ept::epte::read_access::enable(entry);
-            ept::epte::write_access::enable(entry);
-            ept::epte::execute_access::disable(entry);
+            ept::pt::entry::read_access::enable(entry);
+            ept::pt::entry::write_access::enable(entry);
+            ept::pt::entry::execute_access::disable(entry);
         }
 
         vmcs::secondary_processor_based_vm_execution_controls::enable_ept::enable();
@@ -165,9 +165,9 @@ private:
             auto addr = i * page_size_bytes;
             auto &entry = m_mem_map->gpa_to_epte(addr);
 
-            ept::epte::read_access::disable(entry);
-            ept::epte::write_access::disable(entry);
-            ept::epte::execute_access::enable(entry);
+            ept::pt::entry::read_access::disable(entry);
+            ept::pt::entry::write_access::disable(entry);
+            ept::pt::entry::execute_access::enable(entry);
         }
 
         vmcs::secondary_processor_based_vm_execution_controls::enable_ept::enable();
@@ -189,9 +189,9 @@ private:
             auto addr = i * page_size_bytes;
             auto &entry = m_mem_map->gpa_to_epte(addr);
 
-            ept::epte::read_access::enable(entry);
-            ept::epte::write_access::disable(entry);
-            ept::epte::execute_access::enable(entry);
+            ept::pt::entry::read_access::enable(entry);
+            ept::pt::entry::write_access::disable(entry);
+    ept::pt::entry::execute_access::enable(entry);
         }
 
         vmcs::secondary_processor_based_vm_execution_controls::enable_ept::enable();

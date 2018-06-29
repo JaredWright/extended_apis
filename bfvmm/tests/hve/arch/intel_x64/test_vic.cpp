@@ -36,7 +36,7 @@ namespace intel_x64
 
 std::unique_ptr<bfvmm::intel_x64::vmcs> g_vmcs{nullptr};
 std::unique_ptr<bfvmm::intel_x64::exit_handler> g_ehlr{nullptr};
-std::unique_ptr<eapis::intel_x64::ept::memory_map> g_emap{nullptr};
+std::unique_ptr<eapis::intel_x64::ept::mmap> g_emap{nullptr};
 
 std::list<std::function<void(void)>> window_closers = {
     []() { ::x64::rflags::interrupt_enable_flag::disable(); },

@@ -28,8 +28,7 @@
 #include <hve/arch/intel_x64/isr.h>
 #include <hve/arch/intel_x64/vic.h>
 #include <hve/arch/intel_x64/ept/helpers.h>
-#include <hve/arch/intel_x64/ept/intrinsics.h>
-#include <hve/arch/intel_x64/ept/memory_map.h>
+#include <hve/arch/intel_x64/ept/mmap.h>
 
 namespace eapis
 {
@@ -49,7 +48,7 @@ namespace lapic = ::intel_x64::lapic;
 ///
 static auto init_xapic_ept(
     gsl::not_null<eapis::intel_x64::hve *> hve,
-    ept::memory_map &emm,
+    ept::mmap &emm,
     uintptr_t xapic_gpa,
     uintptr_t xapic_hpa)
 {
@@ -58,15 +57,15 @@ static auto init_xapic_ept(
     const auto lo_end = ept::align_4k(xapic_gpa) - ept::page_size_4k;
     const auto hi_end = 0x900000000ULL - ept::page_size_1g;
 
-    ept::identity_map_bestfit_lo(emm, 0ULL, lo_end);
-    ept::map_4k(emm, xapic_gpa, xapic_hpa, ept::epte::memory_attr::uc_re);
+    ept::identity_map_bestfit_lo(emm, 0ULL, lo_end,
+            ept::attr_type::read_execute, ept::memory_type::uncacheable);
     ept::identity_map_bestfit_hi(emm, xapic_gpa + ept::page_size_4k, hi_end);
     ept::enable_ept(ept::eptp(emm), hve);
 }
 
 vic::vic(
     gsl::not_null<eapis::intel_x64::hve *> hve,
-    gsl::not_null<eapis::intel_x64::ept::memory_map *> emm
+    gsl::not_null<eapis::intel_x64::ept::mmap *> emm
 ) :
     m_virt_base_msr{0ULL},
     m_phys_base_msr{0ULL},

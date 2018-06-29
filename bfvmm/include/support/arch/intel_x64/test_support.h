@@ -28,7 +28,7 @@
 #include <bfvmm/test/support.h>
 #include "../../../hve/arch/intel_x64/hve.h"
 #include "../../../hve/arch/intel_x64/vic.h"
-#include "../../../hve/arch/intel_x64/ept/memory_map.h"
+#include "../../../hve/arch/intel_x64/ept/mmap.h"
 
 namespace msrs_n = ::intel_x64::msrs;
 namespace lapic_n = ::intel_x64::lapic;
@@ -51,7 +51,7 @@ namespace lapic
 std::unique_ptr<uint32_t[]> g_vmcs_region;
 std::unique_ptr<bfvmm::intel_x64::vmcs> g_vmcs;
 std::unique_ptr<bfvmm::intel_x64::exit_handler> g_ehlr;
-std::unique_ptr<eapis::intel_x64::ept::memory_map> g_emap;
+std::unique_ptr<eapis::intel_x64::ept::mmap> g_emap;
 
 struct platform_info_t g_platform_info;
 
@@ -100,7 +100,7 @@ inline auto
 setup_ept()
 {
     if (g_emap == nullptr) {
-        g_emap = std::make_unique<eapis::intel_x64::ept::memory_map>();
+        g_emap = std::make_unique<eapis::intel_x64::ept::mmap>();
     }
 
     return g_emap.get();
